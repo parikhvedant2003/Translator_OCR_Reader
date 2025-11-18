@@ -1,0 +1,38 @@
+/* Spinner Animation is handled by Tailwind 'animate-spin' but defining here just in case */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ensure textarea doesn't have scrollbar unless needed */
+textarea {
+    scrollbar-width: thin;
+    scrollbar-color: #475569 transparent;
+}
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+textarea::-webkit-scrollbar-track {
+    background: transparent; 
+}
+textarea::-webkit-scrollbar-thumb {
+    background-color: #475569; 
+    border-radius: 20px;
+}
+
+/* Hide file input visually but keep accessible */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}

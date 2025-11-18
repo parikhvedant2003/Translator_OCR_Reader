@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Translator & OCR Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-primary': '#1e40af',
+                        'brand-secondary': '#1d4ed8',
+                        'brand-accent': '#3b82f6',
+                        'brand-light': '#eff6ff',
+                        'brand-dark': '#1e293b',
+                        'brand-text': '#f8fafc',
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpg') }}">
+</head>
+
+<body class="bg-brand-dark text-brand-text min-h-screen flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-slate-900/70 backdrop-blur-sm sticky top-0 z-10 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-slate-100">Translator & OCR Reader</h1>
+                </div>
+                <nav class="flex space-x-2 bg-slate-800 p-1 rounded-lg">
+                    <button id="nav-translator"
+                        class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none bg-brand-secondary text-white shadow">
+                        Translator
+                    </button>
+                    <button id="nav-ocr"
+                        class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none text-slate-400 hover:bg-slate-700 hover:text-slate-200">
+                        OCR
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto flex-grow w-full">
+
+        <!-- Translator View -->
+        <div id="view-translator" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <!-- Source Language Box -->
+            <div class="flex flex-col bg-slate-800 rounded-xl shadow-lg h-[400px] relative">
+                <div class="p-3 border-b border-slate-700">
+                    <select id="source-lang"
+                        class="bg-slate-700 border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-brand-accent focus:border-brand-accent block w-full p-2.5">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <textarea id="source-text" placeholder="Enter text..."
+                    class="flex-grow p-4 bg-transparent resize-none focus:outline-none text-slate-200 placeholder-slate-500"></textarea>
+                <div class="p-2 border-t border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-mic"
+                            class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                            title="Speak">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <rect x="9" y="2" width="6" height="11" rx="3" />
+                                <path d="M5 10a7 7 0 0 0 14 0" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                        </button>
+                        <div id="mic-indicator" class="w-2 h-2 bg-red-500 rounded-full animate-pulse hidden"></div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-copy-source"
+                            class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                            title="Copy">
+                            <svg class="w-5 h-5 icon-copy" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <rect x="8" y="8" width="12" height="12" rx="2" />
+                                <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2" />
+                            </svg>
+                            <svg class="w-5 h-5 icon-check hidden text-green-400" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M5 12l5 5l10 -10" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Swap Button (Visual only for now or implies logic change) -->
+            <div
+                class="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                <!-- Positioning of this button is tricky in static layout without React's precise relative containers, 
+                      simplified to be centered in grid gap conceptually or handled via flex order if needed. 
+                      For this grid layout, it sits between. -->
+            </div>
+            <button id="btn-swap"
+                class="hidden md:block absolute left-1/2 transform -translate-x-1/2 mt-[200px] p-3 bg-slate-700 rounded-full hover:bg-brand-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent z-20 text-white">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15 4l4 4l-4 4" />
+                    <path d="M19 8h-14" />
+                    <path d="M9 20l-4 -4l4 -4" />
+                    <path d="M5 16h14" />
+                </svg>
+            </button>
+
+            <!-- Target Language Box -->
+            <div class="flex flex-col bg-slate-800 rounded-xl shadow-lg h-[400px]">
+                <div class="p-3 border-b border-slate-700 flex justify-between items-center">
+                    <select id="target-lang"
+                        class="bg-slate-700 border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-brand-accent focus:border-brand-accent block w-full p-2.5">
+                        <!-- Options populated by JS -->
+                    </select>
+                    <div id="loader-translate" class="px-3 hidden">
+                        <div class="animate-spin rounded-full border-2 border-slate-400 border-t-slate-200 w-5 h-5">
+                        </div>
+                    </div>
+                </div>
+                <div id="target-text-container" class="flex-grow p-4 text-slate-200 overflow-y-auto">
+                    <p id="target-text-placeholder" class="text-slate-500">Translation will appear here.</p>
+                    <p id="target-text-content" class="whitespace-pre-wrap hidden"></p>
+                    <p id="target-error" class="text-red-400 hidden"></p>
+                </div>
+                <div class="p-2 border-t border-slate-700 flex items-center justify-end">
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-speak"
+                            class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-50"
+                            title="Listen">
+                            <div id="loader-speak"
+                                class="animate-spin rounded-full border-2 border-slate-400 border-t-slate-200 w-5 h-5 hidden">
+                            </div>
+                            <svg id="icon-speak" class="w-5 h-5" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M15 8a5 5 0 0 1 0 8" />
+                                <path d="M17.7 5a9 9 0 0 1 0 14" />
+                                <path
+                                    d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a.8 .8 0 0 1 1.5 .5v14a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5" />
+                            </svg>
+                        </button>
+                        <button id="btn-copy-target"
+                            class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                            title="Copy">
+                            <svg class="w-5 h-5 icon-copy" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <rect x="8" y="8" width="12" height="12" rx="2" />
+                                <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2" />
+                            </svg>
+                            <svg class="w-5 h-5 icon-check hidden text-green-400" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M5 12l5 5l10 -10" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OCR View -->
+        <div id="view-ocr" class="space-y-6 hidden">
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Upload Image for OCR & Translation</h2>
+                <div
+                    class="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center cursor-pointer hover:border-brand-accent transition-colors relative">
+                    <input type="file" id="image-upload" class="hidden" accept="image/png, image/jpeg, image/webp">
+                    <label for="image-upload"
+                        class="flex flex-col items-center justify-center space-y-2 cursor-pointer w-full h-full">
+                        <svg class="w-8 h-8 text-slate-400" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                            <polyline points="7 9 12 4 17 9" />
+                            <line x1="12" y1="4" x2="12" y2="16" />
+                        </svg>
+                        <span id="file-name" class="font-semibold text-slate-300">Click to upload or drag & drop</span>
+                        <span class="text-xs text-slate-500">PNG, JPG, or WEBP</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="ocr-results-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Image Preview -->
+                <div class="bg-slate-800 rounded-xl p-4 shadow-lg flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-4 self-start">Image Preview</h3>
+                    <img id="image-preview" alt="Preview" class="max-h-64 w-auto object-contain rounded-lg">
+                    <button id="btn-extract"
+                        class="mt-6 w-full bg-brand-secondary hover:bg-brand-primary text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center disabled:bg-slate-700 disabled:cursor-not-allowed">
+                        <span id="text-extract-btn">Extract Text</span>
+                        <div id="loader-extract"
+                            class="hidden ml-2 animate-spin rounded-full border-2 border-slate-200 border-t-transparent w-4 h-4">
+                        </div>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Extracted Text -->
+                    <div class="bg-slate-800 rounded-xl shadow-lg h-48 flex flex-col">
+                        <div class="p-3 border-b border-slate-700 flex justify-between items-center">
+                            <h3 class="font-semibold text-slate-300">Extracted Text</h3>
+                            <button id="btn-copy-extracted"
+                                class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                                title="Copy">
+                                <svg class="w-5 h-5 icon-copy" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <rect x="8" y="8" width="12" height="12" rx="2" />
+                                    <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2" />
+                                </svg>
+                                <svg class="w-5 h-5 icon-check hidden text-green-400" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M5 12l5 5l10 -10" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-4 overflow-y-auto flex-grow text-slate-200">
+                            <p id="extracted-text-content" class="whitespace-pre-wrap"></p>
+                            <p id="extracted-placeholder" class="text-slate-500">Extracted text will appear here.</p>
+                        </div>
+                    </div>
+
+                    <!-- Translated Text -->
+                    <div class="bg-slate-800 rounded-xl shadow-lg h-48 flex flex-col">
+                        <div class="p-3 border-b border-slate-700 flex justify-between items-center gap-4">
+                            <select id="ocr-target-lang"
+                                class="bg-slate-700 border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-brand-accent focus:border-brand-accent block w-full p-2.5">
+                                <!-- Options populated by JS -->
+                            </select>
+                            <div class="flex items-center space-x-1">
+                                <div id="loader-ocr-translate"
+                                    class="animate-spin rounded-full border-2 border-slate-400 border-t-slate-200 w-5 h-5 hidden">
+                                </div>
+                                <button id="btn-speak-ocr"
+                                    class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                                    title="Listen">
+                                    <div id="loader-speak-ocr"
+                                        class="animate-spin rounded-full border-2 border-slate-400 border-t-slate-200 w-5 h-5 hidden">
+                                    </div>
+                                    <svg id="icon-speak-ocr" class="w-5 h-5" viewBox="0 0 24 24" stroke-width="1.5"
+                                        stroke="currentColor" fill="none" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M15 8a5 5 0 0 1 0 8" />
+                                        <path d="M17.7 5a9 9 0 0 1 0 14" />
+                                        <path
+                                            d="M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a.8 .8 0 0 1 1.5 .5v14a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5" />
+                                    </svg>
+                                </button>
+                                <button id="btn-copy-ocr-translated"
+                                    class="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-slate-100 transition-colors"
+                                    title="Copy">
+                                    <svg class="w-5 h-5 icon-copy" viewBox="0 0 24 24" stroke-width="1.5"
+                                        stroke="currentColor" fill="none" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <rect x="8" y="8" width="12" height="12" rx="2" />
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2" />
+                                    </svg>
+                                    <svg class="w-5 h-5 icon-check hidden text-green-400" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                        <path d="M5 12l5 5l10 -10" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-4 overflow-y-auto flex-grow text-slate-200">
+                            <p id="ocr-translated-content" class="whitespace-pre-wrap"></p>
+                            <p id="ocr-translated-placeholder" class="text-slate-500">Translation will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
